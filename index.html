@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>学业绩点智能分析系统</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">GPA</div>
+        <div class="brand-text">
+          <h1>学业绩点</h1>
+          <p>智能分析系统</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-page="dashboard">
+          <span class="nav-ico">▦</span><span>学业总览</span>
+        </button>
+        <button class="nav-item" data-page="courses">
+          <span class="nav-ico">✎</span><span>成绩录入</span>
+        </button>
+        <button class="nav-item" data-page="gpa">
+          <span class="nav-ico">∑</span><span>绩点计算</span>
+        </button>
+        <button class="nav-item" data-page="reverse">
+          <span class="nav-ico">◎</span><span>保研测算</span>
+        </button>
+        <button class="nav-item" data-page="charts">
+          <span class="nav-ico">▤</span><span>可视化报告</span>
+        </button>
+        <button class="nav-item" data-page="awards">
+          <span class="nav-ico">★</span><span>荣誉档案</span>
+        </button>
+        <div class="nav-divider"></div>
+        <button class="nav-item" data-page="settings">
+          <span class="nav-ico">⚙</span><span>设置与备份</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="tip-card">
+          <div class="tip-title">学业小贴士</div>
+          <p id="sidebarTip">每学期及时录入成绩，规划更从容。</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2 id="pageTitle">学业总览</h2>
+          <p id="pageSubtitle">你的学业数据一目了然</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" id="btnDemo">载入示例数据</button>
+          <button class="btn btn-primary" id="btnQuickAdd">+ 添加课程</button>
+        </div>
+      </header>
+
+      <div class="content" id="content"><!-- 动态页面 --></div>
+    </main>
+  </div>
+
+  <!-- 弹窗容器 -->
+  <div class="modal-backdrop" id="modalBackdrop" style="display:none;">
+    <div class="modal" id="modal">
+      <div class="modal-head">
+        <h3 id="modalTitle">标题</h3>
+        <button class="icon-btn" id="modalClose">×</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot" id="modalFoot"></div>
+    </div>
+  </div>
+
+  <!-- 提示 -->
+  <div class="toast" id="toast" style="display:none;"></div>
+
+  <!-- 图片查看器 -->
+  <div class="viewer" id="viewer" style="display:none;">
+    <button class="viewer-close" id="viewerClose">×</button>
+    <img id="viewerImg" src="" alt="奖状" />
+  </div>
+
+  <input type="file" id="fileInput" style="display:none;" />
+
+  <script src="vendor/chart.umd.min.js"></script>
+  <script src="vendor/xlsx.full.min.js"></script>
+  <script src="vendor/pdf.min.js"></script>
+  <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='vendor/pdf.worker.min.js';}</script>
+  <script src="js/core.js"></script>
+  <script src="js/pdf-parser.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
