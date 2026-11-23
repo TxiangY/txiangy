@@ -120,6 +120,11 @@ const GPA = {
     return rule.toPoint(Number(score));
   },
 
+  /** 是否为跨选课程（综测/保研口径中不计入加权绩点与平均成绩） */
+  isCrossElective(c) {
+    return !!(c && /^(跨选|跨学科)$/.test(String(c.type || '').trim()));
+  },
+
   /** 按学期分组统计 */
   byTerm(courses, ruleKey) {
     const map = {};
@@ -135,22 +140,34 @@ const GPA = {
     }));
   },
 
-  /** 一组课程的汇总：加权绩点、加权均分、总学分 */
+  /** 一组课程的汇总：加权绩点、加权均分（均不含跨选）、总学分 */
   summary(courses, ruleKey) {
-    let totalCredit = 0, weightedPoint = 0, weightedScore = 0, passed = 0, failed = 0;
+    let totalCredit = 0, passed = 0, failed = 0;
+    // 综测/保研口径：跨选课程不计入绩点与均分，分子分母均使用独立累加器
+    let avgCredit = 0, avgWeightedPoint = 0, avgWeightedScore = 0, avgCount = 0, crossCount = 0;
     courses.forEach(c => {
       const credit = Number(c.credit) || 0;
       const score = Number(c.score) || 0;
       totalCredit += credit;
-      weightedPoint += this.pointOf(score, ruleKey) * credit;
-      weightedScore += score * credit;
       if (score >= 60) passed++; else failed++;
+      if (this.isCrossElective(c)) {
+        crossCount++;
+      } else {
+        avgCredit += credit;
+        avgWeightedPoint += this.pointOf(score, ruleKey) * credit;
+        avgWeightedScore += score * credit;
+        avgCount++;
+      }
     });
     return {
       count: courses.length,
       totalCredit: round(totalCredit, 2),
-      gpa: totalCredit > 0 ? round(weightedPoint / totalCredit, 3) : 0,
-      avgScore: totalCredit > 0 ? round(weightedScore / totalCredit, 2) : 0,
+      // 加权绩点与加权均分口径一致：分子、分母都只统计非跨选课程
+      gpa: avgCredit > 0 ? round(avgWeightedPoint / avgCredit, 3) : 0,
+      avgScore: avgCredit > 0 ? round(avgWeightedScore / avgCredit, 2) : 0,
+      avgCredit: round(avgCredit, 2),
+      avgCount,
+      crossCount,
       passed,
       failed
     };
@@ -207,15 +224,16 @@ const GPA = {
     };
   },
 
-  /** 已修学分与绩点积点（基于当前录入的课程） */
+  /** 已修学分与绩点积点（基于当前录入的课程，不含跨选，与绩点口径一致） */
   earned(courses, ruleKey) {
-    let credits = 0, points = 0;
+    let credits = 0, points = 0, crossCount = 0;
     courses.forEach(c => {
+      if (this.isCrossElective(c)) { crossCount++; return; }
       const credit = Number(c.credit) || 0;
       credits += credit;
       points += this.pointOf(c.score, ruleKey) * credit;
     });
-    return { credits: round(credits, 2), points: round(points, 3) };
+    return { credits: round(credits, 2), points: round(points, 3), crossCount };
   }
 };
 

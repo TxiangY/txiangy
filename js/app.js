@@ -32,7 +32,7 @@ function toast(msg){
   clearTimeout(t._timer); t._timer=setTimeout(()=>t.style.display='none',2200);
 }
 function ruleKey(){ return Store.getSettings().rule; }
-function badgeClass(type){ return type==='必修'?'必':type==='专业'?'专':type==='选修'?'选':'other'; }
+function badgeClass(type){ return type==='必修'?'必':type==='跨选'?'跨':type==='选修'?'选':'other'; }
 
 /* ---------- 弹窗 ---------- */
 function openModal(title, bodyHTML, footHTML){
@@ -77,14 +77,14 @@ function renderDashboard(){
   content.innerHTML=`<div class="page">
     <div class="kpi-grid">
       <div class="kpi c1">
-        <div class="kpi-label">累计加权绩点</div>
+        <div class="kpi-label">累计加权绩点 <span style="font-size:11px;color:var(--ink-3);font-weight:400;">(不含跨选)</span></div>
         <div class="kpi-value">${sum.gpa.toFixed(2)}<small>/ ${GPA_RULES[rk].max.toFixed(1)}</small></div>
-        <div class="kpi-foot">共 ${sum.count} 门课程</div>
+        <div class="kpi-foot">按 ${sum.avgCredit} 学分计算${sum.crossCount?` · 已排除 ${sum.crossCount} 门跨选`:''}</div>
       </div>
       <div class="kpi c2">
-        <div class="kpi-label">加权平均分</div>
+        <div class="kpi-label">加权平均分 <span style="font-size:11px;color:var(--ink-3);font-weight:400;">(不含跨选)</span></div>
         <div class="kpi-value">${sum.avgScore.toFixed(1)}<small>分</small></div>
-        <div class="kpi-foot">按学分加权计算</div>
+        <div class="kpi-foot">按学分加权 · 跨选课程不计入</div>
       </div>
       <div class="kpi c3">
         <div class="kpi-label">已修总学分</div>
@@ -174,7 +174,7 @@ function openCourseModal(id){
     <div class="field"><label>分数 *</label><input id="f_score" type="number" step="0.1" min="0" max="100" value="${c?c.score:''}" placeholder="0-100"></div>
     <div class="field"><label>学期</label><input id="f_term" list="termList" value="${c?esc(c.term||''):''}" placeholder="如：2024-1"><datalist id="termList">${terms.map(t=>`<option value="${esc(t)}">`).join('')}</datalist></div>
     <div class="field"><label>课程性质</label><select id="f_type">
-      ${['必修','专业','选修','其他'].map(t=>`<option ${c&&c.type===t?'selected':''}>${t}</option>`).join('')}
+      ${['必修','选修','跨选','其他'].map(t=>`<option ${c&&c.type===t?'selected':''}>${t}</option>`).join('')}
     </select></div>
   </div>`;
   const foot=`<button class="btn btn-ghost" onclick="closeModal()">取消</button>
@@ -323,7 +323,7 @@ function downloadTemplate(){
     ['课程名称','学分','分数','学期','性质'],
     ['高等数学',5,88,'2024-1','必修'],
     ['大学英语',3,92,'2024-1','必修'],
-    ['数据结构',4,95,'2024-2','专业']
+    ['数据结构',4,95,'2024-2','必修']
   ];
   const ws=XLSX.utils.aoa_to_sheet(data);
   const wb=XLSX.utils.book_new();
@@ -354,8 +354,8 @@ function renderGpa(){
     </div>
 
     <div class="kpi-grid" style="margin-bottom:18px;">
-      <div class="kpi c1"><div class="kpi-label">累计加权绩点</div><div class="kpi-value">${all.gpa.toFixed(3)}</div><div class="kpi-foot">满分 ${GPA_RULES[rk].max.toFixed(1)}</div></div>
-      <div class="kpi c2"><div class="kpi-label">加权平均分</div><div class="kpi-value">${all.avgScore.toFixed(2)}</div><div class="kpi-foot">共 ${all.count} 门</div></div>
+      <div class="kpi c1"><div class="kpi-label">累计加权绩点 <span style="font-size:11px;color:var(--ink-3);font-weight:400;">(不含跨选)</span></div><div class="kpi-value">${all.gpa.toFixed(3)}</div><div class="kpi-foot">按 ${all.avgCredit} 学分计 · 满分 ${GPA_RULES[rk].max.toFixed(1)}${all.crossCount?` · 排除 ${all.crossCount} 门跨选`:''}</div></div>
+      <div class="kpi c2"><div class="kpi-label">加权平均分 <span style="font-size:11px;color:var(--ink-3);font-weight:400;">(不含跨选)</span></div><div class="kpi-value">${all.avgScore.toFixed(2)}</div><div class="kpi-foot">统计 ${all.avgCount} 门${all.crossCount?` · 已排除 ${all.crossCount} 门跨选`:''}</div></div>
       <div class="kpi c3"><div class="kpi-label">总学分</div><div class="kpi-value">${all.totalCredit}</div><div class="kpi-foot">已修满学分</div></div>
       <div class="kpi c4"><div class="kpi-label">及格 / 挂科</div><div class="kpi-value">${all.passed}<small>/ ${all.failed}</small></div><div class="kpi-foot">门数统计</div></div>
     </div>
@@ -369,7 +369,7 @@ function renderGpa(){
 }
 function termsTableHTML(terms){
   let html=`<div class="table-wrap"><table class="data">
-    <thead><tr><th>学期</th><th>课程数</th><th>学分</th><th>加权均分</th><th>学期绩点</th><th>挂科</th></tr></thead><tbody>`;
+    <thead><tr><th>学期</th><th>课程数</th><th>学分</th><th>加权均分(不含跨选)</th><th>学期绩点(不含跨选)</th><th>挂科</th></tr></thead><tbody>`;
   terms.forEach(t=>{
     html+=`<tr><td><b>${esc(t.term)}</b></td><td>${t.count}</td><td>${t.totalCredit}</td>
       <td>${t.avgScore.toFixed(2)}</td>
@@ -396,9 +396,10 @@ function renderReverse(){
         <div class="card-title">◎ 目标绩点测算</div>
         <div class="card-sub">输入目标与剩余学分，反推后续需要达到的成绩</div>
         <div class="stat-line"><span class="k">当前换算规则</span><span class="v">${GPA_RULES[rk].name}（满分${max}）</span></div>
-        <div class="stat-line"><span class="k">已修学分（来自录入）</span><span class="v">${earned.credits}</span></div>
+        <div class="stat-line"><span class="k">已修学分 <span style="font-size:11px;color:var(--ink-3);">(不含跨选)</span></span><span class="v">${earned.credits}</span></div>
         <div class="stat-line"><span class="k">已获绩点积点 Σ(绩点×学分)</span><span class="v">${earned.points}</span></div>
         <div class="stat-line"><span class="k">当前累计绩点</span><span class="v">${earned.credits?round(earned.points/earned.credits,3):0}</span></div>
+        ${earned.crossCount?`<div class="stat-line"><span class="k">已排除跨选课程</span><span class="v">${earned.crossCount} 门（不计入绩点）</span></div>`:''}
 
         <div class="form-grid" style="margin-top:20px;">
           <div class="field"><label>目标保研绩点</label><input id="r_target" type="number" step="0.01" min="0" max="${max}" value="${s.targetGPA}"></div>
@@ -414,7 +415,7 @@ function renderReverse(){
           <code style="background:var(--bg);padding:2px 6px;border-radius:5px;">目标绩点 = 总绩点积点 ÷ 总学分</code>
         </p>
         <p style="font-size:13px;color:var(--ink-2);line-height:1.9;margin-top:12px;">
-          系统会结合你已录入的成绩（已修学分与已获绩点积点），反推出：<b>剩余学分需要达到的平均绩点</b>，并换算成大致的<b>百分制分数</b>，为你的学业规划提供量化参考。
+          系统会结合你已录入的成绩（已修学分与已获绩点积点，<b>跨选课程不计入</b>），反推出：<b>剩余学分需要达到的平均绩点</b>，并换算成大致的<b>百分制分数</b>，为你的学业规划提供量化参考。
         </p>
         <div class="tip-card" style="margin-top:16px;">
           <div class="tip-title">提示</div>

@@ -138,8 +138,8 @@ table.data tr:last-child td{border-bottom:none;}
 table.data tbody tr:hover{background:#fafbff;}
 .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
 .badge.必{background:#eef0ff;color:var(--primary);}
-.badge.专{background:#f3ecff;color:var(--accent);}
 .badge.选{background:#e8f7f1;color:var(--success);}
+.badge.跨{background:#fff4e5;color:#d97706;}
 .badge.other{background:#f0f2f6;color:var(--ink-2);}
 .point-hi{color:var(--success);font-weight:700;}
 .point-lo{color:var(--danger);font-weight:700;}
